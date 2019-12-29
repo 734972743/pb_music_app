@@ -1,0 +1,119 @@
+{
+	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+		{
+			"path": "pages/index/index",
+			"style": {
+				// "usingComponents":{
+				// 	"van-button": "/wxcomponents/vant/dist/button/index"
+				// },
+				"navigationBarTitleText": "大厅",
+				"enablePullDownRefresh": true   //开启下拉刷新
+				
+			}
+		},
+		{
+			"path": "pages/index/null",
+			"style": {
+				"navigationBarTitleText": "大厅"
+			}
+		},
+		{
+			"path": "pages/index/musicDetails",
+			"style": {
+				// "usingComponents":{
+				// 	"van-icon": "/wxcomponents/vant/dist/icon/index",
+				// 	"van-slider": "/wxcomponents/vant/dist/slider/index"
+				// },
+				"navigationBarTitleText": "歌曲详情"
+			}
+		},
+		{
+			"path": "pages/index/messageDetails",
+			"style": {
+				// "usingComponents":{
+				// 	"van-icon": "/wxcomponents/vant/dist/icon/index",
+				// 	"van-progress": "/wxcomponents/vant/dist/progress/index"
+				// },
+				"navigationBarTitleText": "评论详情"
+			}
+		},
+		{
+			"path": "pages/myMusic/index",
+			"style": {
+				// "usingComponents":{
+				// 	"van-button": "/wxcomponents/vant/dist/button/index"
+				// },
+				"navigationBarTitleText": "我的音乐"
+			}
+		},
+		{
+			"path": "pages/myMusic/myLike",
+			"style": {
+				"navigationBarTitleText": "我喜欢"
+			}
+		},
+		{
+			"path": "pages/vip/index",
+			"style": {
+				"navigationBarTitleText": "vip"
+			}
+		}
+		// {
+		// 	"path": "pages/index/index",
+		// 	"style": {
+		// 		"navigationBarTitleText": "index"
+		// 	}
+		// }
+		
+	],
+	"tabBar":{
+		"color": "#333333",
+		"selectedColor":"#007AFF",
+		"list":[
+			{
+				"pagePath":"pages/index/index",
+				"text":"大厅",
+				"iconPath":"static/播放-01.png",
+				"selectedIconPath":"static/播放-01.png"
+				
+			},
+			{
+				"pagePath":"pages/myMusic/index",
+				"text":"我的音乐",
+				"iconPath":"static/播放-01.png",
+				"selectedIconPath":"static/播放-01.png"
+				
+			},
+			{
+				"pagePath":"pages/vip/index",
+				"text":"vip",
+				"iconPath":"static/播放-01.png",
+				"selectedIconPath":"static/播放-01.png"
+				
+			}
+		]
+	},
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "uni-app",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
+	},
+	"condition" : { //模式配置，仅开发期间生效  ,这个会在微信小程序开发工具上编译器上显示
+		"current": 0, //当前激活的模式(list 的索引项)
+		"list": [
+			{
+				"name": "index", //模式名称
+				"path": "pages/index/index", //启动页面，必选
+				"query": "" //启动参数，在页面的onLoad函数里面得到
+			},
+			{
+				"name": "myLike", //模式名称
+				"path": "pages/myMusic/myLike", //启动页面，必选
+				"query": "" //启动参数，在页面的onLoad函数里面得到
+			}
+		]
+	},
+	 "requiredBackgroundModes":["audio","backgroundAudioManager"] //需要在后台使用的能力，如「音乐播放」
+	//"requiredBackgroundModes":["audio"] //需要在后台使用的能力，如「音乐播放」
+}
