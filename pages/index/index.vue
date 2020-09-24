@@ -1,6 +1,27 @@
 <template>
 	<view class="">
-		<navigator :url="'../../pages/index/musicDetails?songId='+music.songId" class="musicList" v-for="(music,index) in  musicList">
+		<!-- 查询条件 -->
+		<view class="audioParamForm" >
+			<evan-form  ref="videoFormRef" :model="audioParamForm">
+				<input class="form-input" placeholder-class="form-input-placeholder" v-model="audioParamForm.audioName" placeholder="请输入音频的名称" />
+			</evan-form>
+			<button @click="searchAudioForm" class="evan-form-show__button">查找</button>
+		</view>
+		
+		<!-- 导航栏 -->
+		<view class="navigation">
+			<navigator class="navigation_item"  url="../../pages/index/indexItem?typeId=-1">所有</navigator>
+			<navigator class="navigation_item" url="../../pages/index/indexItem?typeId=16">新歌</navigator>
+			<navigator class="navigation_item" url="../../pages/index/indexItem?typeId=17">热门歌曲</navigator>
+			<navigator class="navigation_item" url="../../pages/index/indexItem?typeId=18">纯音乐</navigator>
+			<navigator class="navigation_item" url="../../pages/index/indexItem?typeId=19">单口相声</navigator>
+			<navigator class="navigation_item" url="../../pages/index/indexItem?typeId=20">相声</navigator>
+		</view>
+		
+		
+		
+		
+		 <navigator :url="'../../pages/index/musicDetails?songId='+music.songId+'&isPlay=false'" :class="['musicListCls', music.isPlay ? 'isPlayCls':'']" v-for="(music,index) in  musicList" :key="music.songId">
 			<image class="musicImg" :src="music.imgUrl|songImageFilter" ></image>
 			<view class="musicName">{{music.songName|songNameFilter}}</view>
 			<view class="musicOperation">
@@ -11,7 +32,7 @@
 				
 				
 			</view>
-		</navigator>
+		</navigator> 
 		
 		<view class="playView"  v-if="playMusic" @click="goTOMusic">
 			<image class="playMusicImgage" :src="playMusic && playMusic.imgUrl|songImageFilter" ></image>
@@ -25,7 +46,7 @@
 		 <popup-layer ref="collectionRef" :direction="'top'" >
 			<view class="box" >
 				<list>
-					<view class="collectionList" v-for="(collection,index) in collectionList" >
+					<view class="collectionList" v-for="(collection,index) in collectionList" :key="collection.songListId">
 						<view class="collectionName">
 							{{collection.songListName}}
 						</view>
@@ -39,7 +60,7 @@
 		
 		<popup-layer ref="newCollectionRef" :direction="'top'" >
 			<view class="box" >				
-				<evan-form :hideRequiredAsterisk="hideRequiredAsterisk" ref="newCollectionFormRef" :model="newCollectionForm">
+				<evan-form  ref="newCollectionFormRef" :model="newCollectionForm">
 							<evan-form-item label="收藏夹名称：" prop="collectionName">
 								<input class="form-input" placeholder-class="form-input-placeholder" v-model="newCollectionForm.collectionName" placeholder="请输入收藏夹名称" />
 							</evan-form-item>
@@ -90,6 +111,11 @@
 		
 		data(){
 			return{
+				
+				audioParamForm:{
+					audioName:"",
+				},
+				searchValue:"",
 				currentPage: 1,
 				pageSize: 10,
 				searchMap:{
@@ -101,6 +127,9 @@
 						
 					}
 				],
+				musicListCls:"musicListCls",
+				isPlayCls:"isPlayCls",
+				
 				user:null,
 				iconfont: "iconfont",  // class样式
 				iconlove:"iconlove",
@@ -162,7 +191,11 @@
 			that = this;
 			
 			//获取当前用户的所有已收藏歌曲列表
-			this.fetchDataCollectionSongList();
+			this.fetchDataCollectionSongList().then(response=>{
+				that.collectionSongList = response;
+			}).catch(error=>{
+				console.log(error);
+			});
 			this.fetchData();
 			
 			
@@ -200,6 +233,15 @@
 			this.user = uni.getStorageSync("pb-music-user");  // 每次页面刷新时就获取用户信息
 			this.collection = uni.getStorageSync("pb-music-collection");
 			this.playMusic = uni.getStorageSync("play-music");
+			if(this.playMusic && this.musicList){
+				//让正在播放的歌曲跟列表中的那一行高亮
+				this.musicList.forEach(item=>{
+					item.isPlay = false;
+					if(item.songId == this.playMusic.songId){
+						item.isPlay = true;
+					}
+				})
+			}
 		
 		},
 		
@@ -216,6 +258,13 @@
 		},
 		
 		methods:{
+			
+			searchAudioForm(){
+				
+				this.searchMap.songName = this.audioParamForm.audioName;
+				
+				this.fetchData();
+			},
 			
 			
 			//刷新页面
@@ -243,6 +292,16 @@
 						//let date1 = new Date();
 						for(let i=0;i<that.musicList.length;i++){
 							that.musicList[i].isCollection = false;
+							//给musicList 添加是否播放当前音乐的标志
+							if(that.playMusic){
+								that.musicList[i].isPlay = false;
+								if(that.musicList[i].songId == that.playMusic.songId){
+									that.musicList[i].isPlay = true;
+								}
+							}
+							
+							
+							
 							for(let j=0; j< that.collectionSongList.length;j++){
 								if(that.musicList[i].songId == that.collectionSongList[j].songId ){
 									that.musicList[i].isCollection = true;
@@ -253,16 +312,34 @@
 					}
 					
 				})
+				
+			   // musicApi.baiduMusicSearch(response=>{
+				  //  let resp = response.data;
+				  //  console.log("baiduMusicSearch",resp);
+			   // });
+			   
+			   // musicApi.baiduMusicPlay(response=>{
+				  //  let resp = response.data;
+				  //  console.log("baiduMusicPlay",resp);
+			   // })
 			},
 			
 			//获取当前用户的所有已收藏歌曲列表
 			fetchDataCollectionSongList(){
-				musicApi.getCollectionSongByUserId(that.user.userId,function(response){
-					let resp = response.data;
-					if(resp.code == 200){
-						that.collectionSongList = resp.data;
+				return new Promise((resolve,reject)=>{
+					if(that.user.userId){
+						musicApi.getCollectionSongByUserId(that.user.userId,function(response){
+							let resp = response.data;
+							if(resp.code == 200){
+								// that.collectionSongList = resp.data;
+								resolve(resp.data);
+							}
+						});
+					}else{
+						reject("用户没登录");
 					}
 				});
+				
 			},
 			
 			//收藏音乐
@@ -372,14 +449,88 @@
 </script>
 
 
-<style lang="scss">
-	.musicList{
+<style lang="less">
+	.audioParamForm{
+		position: fixed;
+		background-color: white;
+		z-index: 99;
+		width: 100%;
+		height: 35px;
+		top:0;
+		
+		.form-input{
+			width: 60%;
+			height: 30px;
+			float: left;
+			position: relative;
+			left: 10px;
+		}
+		
+		.evan-form-show__button{
+			width: 60px;
+			height: 30px;
+			position: relative;
+			right: -28px;
+		}
+	}
+	
+	
+	.navigation{
+		display: inline-flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		margin: 20px auto;
+		justify-content: space-around;
+		align-content:space-between;
+		margin-top: 38px;;
+		
+		.navigation_item{
+			width: 88px;
+			height: 50px;
+			border-radius: 25px;
+			text-align: center;
+			line-height: 50px;
+			word-break: break-word;
+			padding: 5rpx;
+			
+			&:nth-of-type(1){
+				background-color: #f39c12;
+			}
+			&:nth-of-type(2){
+				background-color: #2ecc71;
+			}
+			&:nth-of-type(3){
+				background-color: #e74c3c;
+			}
+			&:nth-of-type(4){
+				background-color: #3498db;
+			}
+			&:nth-of-type(5){
+				background-color: #bdc3c7;
+			}
+			&:nth-of-type(6){
+				background-color: #e056fd;
+			}
+		}
+		
+	}
+	
+	
+	
+	
+	
+	.musicListCls{
 		display: flex;
 		flex-wrap: nowrap;
 		/*  三个view ,左边左对齐，右边右对齐 */
 		flex-flow: row nowrap;
 		justify-content: space-between;
 		align-content: flex-start;
+	}
+	
+	.isPlayCls{
+		// background-color: red;
+		color: #e74c3c;
 	}
 	
 	.musicImg{

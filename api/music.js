@@ -3,6 +3,7 @@ import * as common from "../utils/common.js";
 
 export default {
 	
+	
 	//根据条件来查询所有的歌曲列表  有分页效果
 	getMusicSearch(page, size, searchMap,callback) {
 		let typeIds = [];
@@ -16,7 +17,8 @@ export default {
 		  method: "POST",
 		  data: {
 			songName: searchMap.songName,
-			searchTypeIds: typeIds
+			searchTypeIds: typeIds,
+			isSort: searchMap.isSort? searchMap.isSort : 0
 		  },
 		  success: callback
 		});
@@ -149,5 +151,23 @@ export default {
 			},
 			success:callback
 		  });
-	  },  
+	  }, 
+	   
+	   
+	   //百度音乐
+	  baiduMusicSearch(callback){
+		  uni.request({
+		  	url: "http://tingapi.ting.baidu.com/v1/restserver/ting?method=baidu.ting.billboard.billList&type=1&size=10&offset=0",
+			method:"GET",
+			success:callback
+		  })
+	  },
+	  
+	  baiduMusicPlay(callback){
+		  uni.request({
+		  	url:"http://tingapi.ting.baidu.com/v1/restserver/ting?method=baidu.ting.song.playAAC&songid=672865438",
+			method:"GET",
+			success:callback
+		  })
+	  }
 }

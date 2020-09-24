@@ -1,6 +1,21 @@
 import * as common from "../utils/common.js";
 
 export default{
+	
+	 //登录
+	  login(userForm,callback) {
+	    return uni.request({
+	      url: common.VUE_APP_JAVA_URL+`/user/login`,
+	      method: "POST",
+	      data: {
+	        loginId: userForm.username,
+	        password: userForm.password
+	      },
+		  success: callback
+	    });
+	  },
+	
+	
 	//注册用户
 	register(userForm,callback) {
 		return uni.request({

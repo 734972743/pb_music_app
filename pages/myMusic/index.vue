@@ -2,10 +2,37 @@
 	<view class="">
 		
 		
+		
 		 <view class="" v-if="!isLogin">
-			<!-- #ifdef MP-WEIXIN -->
-			<button type="primary" open-type="getUserInfo" @getuserinfo="getuserinfo" withCredentials="true" >微信登录</button>
-			<!-- #endif -->
+			 
+			 
+			 <view class="" v-if="isWeixin">
+			 	<!-- #ifdef MP-WEIXIN -->
+			 		<button type="primary" open-type="getUserInfo" @getuserinfo="getuserinfo" withCredentials="true" >微信登录</button>
+			 	<!-- #endif -->
+			 </view>
+			 
+			 
+			 <view class="" v-else>
+			 	<!-- #ifdef APP-PLUS -->
+			 		
+			 		<!-- 用户登录 -->
+			 		<view class="messageForm" >
+			 			<evan-form  ref="userLoginFormRef" :model="userLoginForm">
+			 						<evan-form-item label="账号:" prop="content">
+			 							<input class="form-input" placeholder-class="form-input-placeholder" v-model="userLoginForm.loginId" placeholder="请输入账号" />
+			 						</evan-form-item>
+			 						<evan-form-item label="密码:" prop="content">
+			 							<input class="form-input" placeholder-class="form-input-placeholder" v-model="userLoginForm.password" placeholder="请输入密码" />
+			 						</evan-form-item>
+			 					</evan-form>
+			 					<button @click="userLoginBtn" class="evan-form-show__button">登录</button>
+								<button @click="userRegisterBtn" class="evan-form-show__button">注册</button>
+			 		</view>
+			 	<!-- #endif -->
+			 </view>
+			
+			
 		</view>
 		 <view class="" v-else>
 			<image src="../../static/bg_profile.jpg" class="myMusicImageBackground" ></image>
@@ -106,6 +133,10 @@
 	import musicApi from "@/api/music.js";
 	import userApi from "@/api/user.js";
 	
+	import EvanForm from '@/components/evan-form/evan-form.vue'
+	import EvanFormItem from '@/components/evan-form/evan-form-item.vue'
+	import popupLayer from '@/components/popup-layer/popup-layer.vue';
+	
 	let that;
 	export default {
 		components:{
@@ -115,10 +146,17 @@
 			tTable,
 			tTh,
 			tTr,
-			tTd
+			tTd,
+			popupLayer,
 		},
 		data() {
 			return {
+				isWeixin: true,  //判断是否是微信还是andorid程序
+				userLoginForm:{
+					loginId: "",
+					password: ""
+				},
+				
 				isLogin: false,
 				userRegister: {}, //用户注册信息
 				user:null,
@@ -138,13 +176,31 @@
 				myHistoryMusicList:[],  //我的收听历史列表
 				myCreateCollectionList:[],  //我创建的歌单列表
 				
+				
+				//校验规则
+				userLoginFormRules: {
+					loginId: {
+						required: true,
+						message: '账号不能为空'
+					},
+					password: {
+						required: true,
+						message: '密码不能为空'
+					},
+				},
+				
 			}
 		},
 
 		onLoad() {
 			that = this;
 			this.isLogin = global.isLogin();
-
+			this.isWeixin = uni.getSystemInfoSync().platform !== 'android' 
+			
+			// 这里必须放在$nextTick中，不然h5会找不到this.$refs.form
+			this.$nextTick(() => {
+				this.$refs.userLoginFormRef.setRules(that.userLoginFormRules);
+			})
 
 		},
 		
@@ -229,6 +285,7 @@
 												if (resp2.code == 200) {
 													//把用户信息保存
 													uni.setStorageSync("pb-music-user", resp2.data);
+													 that.user = resp2.data;
 												}
 											});
 										} else {
@@ -324,7 +381,32 @@
 			
 			openCollection(item) {
 				
+			},
+			
+			userLoginBtn(){
+				debugger
+				that.$refs.userLoginFormRef.validate((vali)=>{
+					if(vali){
+						userApi.login(that.userLoginForm,(response)=>{
+							let resp = response.data;
+							console.log("resp",resp);
+							if (resp.flag) {
+							  that.isLogin = false;
+							  uni.setStorageSync("pb-music-user", resp.data);
+							  that.user = resp.data;  
+							}
+						});
+					}
+				});
+			},
+			
+			userRegisterBtn(){
+				uni.navigateTo({
+				    url: 'register'
+				});
 			}
+			
+			
 			
 		},
 		
